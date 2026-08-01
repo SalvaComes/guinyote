@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using UnityEngine;
 using GuinoteApp.Core;
 
@@ -37,6 +37,7 @@ namespace GuinoteApp.View
 
         private Vector3 posicionBase;
         private Vector3 posicionObjetivo;
+        private float rotacionBase = 0f;
 
         // Evento: notifica al gestor cuando el jugador hace click
         public System.Action<CardView> OnCartaSeleccionada;
@@ -107,6 +108,23 @@ namespace GuinoteApp.View
             posicionBase = nuevaPosicion;
             spriteRenderer.sortingOrder = orderInLayer;
             ActualizarPosicionObjetivo();
+        }
+
+        /// <summary>
+        /// Establece la rotacion Z de la carta en grados (para el abanico de la mano).
+        /// </summary>
+        public void SetRotacion(float anguloZ)
+        {
+            rotacionBase = anguloZ;
+            transform.rotation = Quaternion.Euler(0f, 0f, rotacionBase);
+        }
+
+        /// <summary>
+        /// Establece la escala de la carta (para diferentes tamaños según la zona de mesa).
+        /// </summary>
+        public void SetEscala(Vector3 escala)
+        {
+            transform.localScale = escala;
         }
 
         // =====================================================================

@@ -2,18 +2,25 @@ using System.Collections.Generic;
 using UnityEngine;
 using GuinoteApp.Core;
 using GuinoteApp.View;
+using GuinoteApp.UI;
 
 namespace GuinoteApp.Managers
 {
     /// <summary>
     /// Punto de entrada de la partida.
-    /// Coordina el reparto inicial, la capa visual y el TurnManager.
+    /// Coordina el reparto inicial, la capa visual (CartaVisualManager),
+    /// el HUD (HUDMesaDeJuego), la navegacion (UIManager) y el TurnManager.
     /// </summary>
     public class GameManager : MonoBehaviour
     {
         [Header("Managers")]
         [SerializeField] private CartaVisualManager cartaVisualManager;
         [SerializeField] private TurnManager turnManager;
+
+        [Header("UI")]
+        [SerializeField] private UIManager uiManager;
+        [SerializeField] private HUDMesaDeJuego hudMesa;
+        [SerializeField] private PantallaSeleccion pantallaSeleccion;
 
         // =====================================================================
         // Estado de partida (Core)
@@ -33,14 +40,25 @@ namespace GuinoteApp.Managers
         // Ciclo de vida Unity
         // =====================================================================
 
-        void Start()
+        private void Awake()
         {
-            IniciarPartida();
+            // Suscribirse al evento "Comenzar partida" de la pantalla de seleccion
+            if (pantallaSeleccion != null)
+                pantallaSeleccion.OnComenzarPartida += OnComenzarPartidaDesdeSeleccion;
         }
 
         // =====================================================================
-        // Inicializacion de partida
+        // Arranque de partida
         // =====================================================================
+
+        /// <summary>
+        /// Callback desde PantallaSeleccion cuando el jugador pulsa "Comenzar partida".
+        /// </summary>
+        private void OnComenzarPartidaDesdeSeleccion(DificultadIA dificultad)
+        {
+            Debug.Log($"[GameManager] Iniciando partida. Dificultad: {dificultad}");
+            IniciarPartida();
+        }
 
         private void IniciarPartida()
         {
@@ -74,13 +92,23 @@ namespace GuinoteApp.Managers
             // ── 5. Capa visual ─────────────────────────────────────────────
             if (cartaVisualManager != null)
             {
+                cartaVisualManager.LimpiarTodo();
                 cartaVisualManager.MostrarManoJugador(manosJugadores[0]);
+                cartaVisualManager.ActualizarDorsosIA(manosJugadores);
                 cartaVisualManager.MostrarTriunfo(triunfo);
+                cartaVisualManager.MostrarMazo(baraja.CartasRestantes());
                 cartaVisualManager.OnJugadorSeleccionoCarta += ManejarCartaSeleccionada;
                 Debug.Log("[GameManager] Capa visual lista.");
             }
 
-            // ── 6. TurnManager ─────────────────────────────────────────────
+            // ── 6. HUD ─────────────────────────────────────────────────────
+            if (hudMesa != null)
+            {
+                hudMesa.Resetear();
+                hudMesa.ActualizarMazo(baraja.CartasRestantes());
+            }
+
+            // ── 7. TurnManager ─────────────────────────────────────────────
             if (turnManager != null)
             {
                 SuscribirEventosTurnManager();
@@ -114,17 +142,16 @@ namespace GuinoteApp.Managers
         private void HabilitarInteraccionHumano()
         {
             Debug.Log("[GameManager] Turno del jugador humano.");
-            if (cartaVisualManager != null)
-            {
-                // Habilitar click solo en las cartas del humano
-                // (CartaVisualManager ya gestiona los CardView de la mano)
-            }
             cartaSeleccionada = null;
         }
 
         private void ManejarCartaJugadaPorCualquiera(int jugadorIdx, Carta carta)
         {
-            // Si es el jugador humano, quitar la carta de la vista
+            // Mostrar la carta jugada en la posicion de baza del jugador
+            if (cartaVisualManager != null)
+                cartaVisualManager.MostrarCartaEnBaza(jugadorIdx, carta);
+
+            // Si es el jugador humano, quitar la carta de la vista de mano
             if (jugadorIdx == 0 && cartaVisualManager != null && cartaSeleccionada != null)
             {
                 cartaVisualManager.QuitarCartaDeMano(cartaSeleccionada);
@@ -137,9 +164,25 @@ namespace GuinoteApp.Managers
             string pareja = (ganador == 0 || ganador == 2) ? "A (J1+J3)" : "B (J2+J4)";
             Debug.Log($"[GameManager] Baza → J{ganador + 1} | Pareja {pareja} | A:{ptsA} B:{ptsB}");
 
-            // Actualizar la mano visual del humano tras el robo
+            // Limpiar cartas de la baza del tapete
             if (cartaVisualManager != null)
+                cartaVisualManager.LimpiarBaza();
+
+            // Actualizar mano visual del humano y dorsos de IA tras el robo
+            if (cartaVisualManager != null)
+            {
                 cartaVisualManager.MostrarManoJugador(manosJugadores[0]);
+                cartaVisualManager.ActualizarDorsosIA(manosJugadores);
+                cartaVisualManager.MostrarMazo(baraja.CartasRestantes());
+            }
+
+            // Actualizar HUD
+            if (hudMesa != null)
+            {
+                // Pareja A = jugadores 0 y 2 = "Nosotros" (J1 es el humano)
+                hudMesa.ActualizarMarcador(ptsA, ptsB);
+                hudMesa.ActualizarMazo(baraja.CartasRestantes());
+            }
         }
 
         private void ManejarCambioFase(GamePhase nuevaFase)
@@ -148,21 +191,30 @@ namespace GuinoteApp.Managers
 
             if (nuevaFase == GamePhase.FaseArrastre && cartaVisualManager != null)
             {
-                // El triunfo ya no esta en el mazo, lo ocultamos
+                // El triunfo ya no está en el mazo: ocultarlo
                 cartaVisualManager.MostrarTriunfo(null);
+                cartaVisualManager.MostrarMazo(0);
             }
+
+            if (nuevaFase == GamePhase.FaseArrastre && hudMesa != null)
+                hudMesa.ActualizarMazo(0);
         }
 
         private void ManejarFinPartida(int ptsA, int ptsB)
         {
-            string ganador = ptsA > ptsB ? "Pareja A (J1+J3)" : (ptsB > ptsA ? "Pareja B (J2+J4)" : "EMPATE");
-            Debug.Log($"[GameManager] FIN — A:{ptsA} | B:{ptsB} → {ganador}");
-            // TODO: Mostrar pantalla de resultado
+            string resultado = ptsA > ptsB ? "Pareja A (J1+J3)" : (ptsB > ptsA ? "Pareja B (J2+J4)" : "EMPATE");
+            Debug.Log($"[GameManager] FIN — A:{ptsA} | B:{ptsB} → {resultado}");
+
+            if (hudMesa != null)
+                hudMesa.MostrarFinPartida(ptsA, ptsB);
         }
 
         private void ManejarCante(int jugadorIdx, Palo palo, int puntos)
         {
             Debug.Log($"[GameManager] J{jugadorIdx + 1} canta {puntos} en {palo}.");
+
+            if (hudMesa != null)
+                hudMesa.MostrarCante(palo, puntos);
         }
 
         private void ManejarCambioTriunfo(int jugadorIdx, Carta cartaEntregada, Carta cartaRecibida)

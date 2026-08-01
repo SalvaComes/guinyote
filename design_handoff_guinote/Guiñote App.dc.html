@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+
+<helmet data-dc-atomics="">
+<meta name="design_doc_mode" content="canvas">
+<link rel="stylesheet" href="./_ds/broadsheet-3f1915db-077d-4d8f-8a37-cd3b9b901aed/styles.css">
+<script src="./_ds/broadsheet-3f1915db-077d-4d8f-8a37-cd3b9b901aed/_ds_bundle.js"></script>
+<script src="./image-slot.js"></script>
+<style>
+  body{margin:0;background:var(--color-neutral-200);font-family:var(--font-body)}
+  a{color:var(--color-accent-700)}
+  a:hover{color:var(--color-accent)}
+</style>
+</helmet>
+
+<div style="min-height:100vh;box-sizing:border-box;padding:var(--space-8);display:flex;flex-wrap:wrap;gap:var(--space-8);align-items:flex-start">
+
+  <!-- SCREEN 1: INICIO -->
+  <div data-screen-label="Inicio" style="display:flex;flex-direction:column;gap:var(--space-3);align-items:flex-start">
+    <div style="width:900px;height:420px;background:var(--color-bg);box-shadow:var(--shadow-lg);border:2px solid var(--color-text);box-sizing:border-box;padding:var(--space-6) var(--space-6);display:flex;flex-direction:column">
+
+      <div style="display:flex;align-items:baseline;justify-content:space-between;border-bottom:3px solid var(--color-text);padding-bottom:var(--space-2)">
+        <div style="font:700 15px var(--font-heading);letter-spacing:.06em;text-transform:uppercase">Guiñote</div>
+        <div style="font:italic 400 13px var(--font-body);color:var(--color-neutral-700)">Edición familiar</div>
+        
+      </div>
+      <div style="border-bottom:1px solid var(--color-neutral-400);padding:var(--space-1) 0 var(--space-3);font:500 12px var(--font-body);color:var(--color-neutral-700)">Jugador: Manolo · Baraja española Heraclio Fournier</div>
+
+      <div style="flex:1;display:flex;align-items:center;justify-content:space-between;gap:var(--space-6)">
+        <div style="display:flex;flex-direction:column;gap:var(--space-4);max-width:380px">
+          <div style="font:700 56px/1.02 var(--font-heading)">El juego de<br>cartas de<br>siempre</div>
+          <div style="display:flex;gap:var(--space-3)">
+            <div class="btn btn-primary">Jugar con la IA</div>
+            <div class="btn btn-secondary">Multijugador</div>
+          </div>
+          <a href="#" style="font:500 13px var(--font-body);text-decoration:underline">Cómo se juega →</a>
+        </div>
+
+        <div style="display:flex;gap:calc(-1 * var(--space-6));align-items:flex-end">
+          <div style="transform:rotate(-8deg);width:110px;height:158px">
+            <image-slot id="hero-card-1" placeholder="As de Oros (Fournier)" fit="contain"></image-slot>
+          </div>
+          <div style="transform:rotate(2deg);width:110px;height:158px;z-index:2">
+            <image-slot id="hero-card-2" placeholder="Rey de Copas (Fournier)" fit="contain"></image-slot>
+          </div>
+          <div style="transform:rotate(11deg);width:110px;height:158px">
+            <image-slot id="hero-card-3" placeholder="Sota de Espadas (Fournier)" fit="contain"></image-slot>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div style="font:600 12px var(--font-heading);letter-spacing:.06em;color:var(--color-neutral-700);text-transform:uppercase">01 · Inicio</div>
+  </div>
+
+  <!-- SCREEN 2: SELECCIÓN -->
+  <div data-screen-label="Selección de compañero/rivales" style="display:flex;flex-direction:column;gap:var(--space-3);align-items:flex-start">
+    <div style="width:900px;height:420px;background:var(--color-bg);box-shadow:var(--shadow-lg);border:2px solid var(--color-text);box-sizing:border-box;padding:var(--space-4) var(--space-6);display:flex;flex-direction:column;gap:var(--space-3)">
+
+      <div style="display:flex;align-items:baseline;justify-content:space-between;border-bottom:3px solid var(--color-text);padding-bottom:var(--space-1)">
+        <div style="font:700 24px var(--font-heading)">Elige tu mesa</div>
+        <div class="seg">
+          <div class="seg-opt" aria-selected="true">Contra la IA</div>
+          <div class="seg-opt">Multijugador</div>
+        </div>
+      </div>
+
+      <div style="flex:1;display:grid;grid-template-columns:repeat(3,1fr);gap:var(--space-2);min-height:0">
+        <div class="card elev-sm" style="display:flex;flex-direction:column;align-items:center;gap:var(--space-1);padding:var(--space-2)">
+          <div style="width:44px;height:44px;border-radius:50%;background:var(--color-neutral-300);display:flex;align-items:center;justify-content:center;font:700 13px var(--font-heading)">IA</div>
+          <div class="card-title" style="font-size:13px">Rival · Normal</div>
+        </div>
+        <div class="card" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:var(--space-1);padding:var(--space-2);border:2px dashed var(--color-accent);background:transparent;box-shadow:none">
+          <div style="width:44px;height:44px;border-radius:50%;border:2px dashed var(--color-accent);display:flex;align-items:center;justify-content:center;font:700 20px var(--font-heading);color:var(--color-accent-700)">+</div>
+          <div class="card-title" style="font-size:13px;color:var(--color-accent-700)">Elegir compañero</div>
+        </div>
+        <div class="card elev-sm" style="display:flex;flex-direction:column;align-items:center;gap:var(--space-1);padding:var(--space-2)">
+          <div style="width:44px;height:44px;border-radius:50%;background:var(--color-neutral-300);display:flex;align-items:center;justify-content:center;font:700 13px var(--font-heading)">IA</div>
+          <div class="card-title" style="font-size:13px">Rival · Normal</div>
+        </div>
+
+        <div></div>
+        <div class="card elev-md" style="display:flex;flex-direction:column;align-items:center;gap:var(--space-1);padding:var(--space-2);border:2px solid var(--color-accent-2)">
+          <div style="width:48px;height:48px;border-radius:50%;background:var(--color-accent-2-200);display:flex;align-items:center;justify-content:center;font:700 14px var(--font-heading);color:var(--color-accent-2-700)">TÚ</div>
+          <div class="card-title" style="font-size:13px;color:var(--color-accent-2-700)">Tú</div>
+        </div>
+        <div></div>
+      </div>
+
+      <div style="display:flex;align-items:center;justify-content:space-between;border-top:1px solid var(--color-neutral-400);padding-top:var(--space-2)">
+        <div class="seg">
+          <div class="seg-opt">Fácil</div>
+          <div class="seg-opt" aria-selected="true">Normal</div>
+          <div class="seg-opt">Difícil</div>
+        </div>
+        <div class="btn btn-primary">Comenzar partida</div>
+      </div>
+    </div>
+    <div style="font:600 12px var(--font-heading);letter-spacing:.06em;color:var(--color-neutral-700);text-transform:uppercase">02 · Selección de mesa</div>
+  </div>
+
+  <!-- SCREEN 3: REGLAS -->
+  <div data-screen-label="Reglas/Tutorial" style="display:flex;flex-direction:column;gap:var(--space-3);align-items:flex-start">
+    <div style="width:900px;height:420px;background:var(--color-bg);box-shadow:var(--shadow-lg);border:2px solid var(--color-text);box-sizing:border-box;padding:var(--space-4) var(--space-6);display:flex;flex-direction:column;gap:var(--space-2);overflow:hidden">
+
+      <div style="border-bottom:3px solid var(--color-text);padding-bottom:var(--space-1)">
+        <div style="font:700 24px var(--font-heading)">Cómo se juega</div>
+        <div style="font:400 12px var(--font-body);color:var(--color-neutral-700)">Dos parejas enfrentadas · gana el primer equipo en llegar a <b>101 puntos</b></div>
+      </div>
+
+      <div style="flex:1;display:grid;grid-template-columns:1.1fr 1fr;gap:var(--space-6);min-height:0">
+        <div style="display:flex;flex-direction:column;gap:var(--space-1)">
+          <div style="font:700 12px var(--font-heading);text-transform:uppercase;letter-spacing:.04em;color:var(--color-accent-700)">Valor de las cartas</div>
+          <sc-for list="{{rulesPoints}}" as="row" hint-placeholder-count="6">
+            <div style="display:flex;align-items:center;gap:var(--space-2);padding:3px 0;border-bottom:1px solid var(--color-neutral-300)">
+              <div style="width:26px;height:36px;flex-shrink:0;border:1px solid var(--color-neutral-500);border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;font:700 11px var(--font-heading);color:var(--color-accent-700)">{{row.glyph}}</div>
+              <div style="font:500 13px var(--font-body);flex:1">{{row.label}}</div>
+              <div class="tag tag-accent-2">{{row.pts}} pts</div>
+            </div>
+          </sc-for>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:var(--space-2)">
+          <div style="font:700 12px var(--font-heading);text-transform:uppercase;letter-spacing:.04em;color:var(--color-accent-700)">Cantes</div>
+          <div style="font:400 13px/1.4 var(--font-body)"><b>Las 20:</b> Rey y Caballo del mismo palo (sin ser triunfo).</div>
+          <div style="font:400 13px/1.4 var(--font-body)"><b>Las 40:</b> Rey y Caballo del palo de triunfo.</div>
+          <div style="font:400 13px/1.4 var(--font-body)"><b>Arrastre:</b> al agotarse el mazo, es obligatorio asistir al palo y superar la baza si se puede.</div>
+        </div>
+      </div>
+    </div>
+    <div style="font:600 12px var(--font-heading);letter-spacing:.06em;color:var(--color-neutral-700);text-transform:uppercase">03 · Reglas</div>
+  </div>
+
+  <!-- SCREEN 4: MESA DE JUEGO -->
+  <div data-screen-label="Mesa de juego" style="display:flex;flex-direction:column;gap:var(--space-3);align-items:flex-start">
+    <div style="width:900px;height:600px;background:var(--color-bg);box-shadow:var(--shadow-lg);border:2px solid var(--color-text);box-sizing:border-box;padding:var(--space-4) var(--space-6);display:flex;flex-direction:column;gap:var(--space-3);position:relative;overflow:hidden">
+
+      <div style="height:40px;min-height:40px;flex-shrink:0;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--color-neutral-400);padding-bottom:var(--space-2);box-sizing:border-box">
+        <div style="display:flex;gap:var(--space-3);align-items:baseline">
+          <div style="font:700 14px var(--font-heading)">Nosotros <span style="color:var(--color-accent-700)">42</span></div>
+          <div style="color:var(--color-neutral-400)">·</div>
+          <div style="font:700 14px var(--font-heading)">Ellos <span style="color:var(--color-accent-2-700)">35</span></div>
+        </div>
+        <div class="tag tag-outline" style="white-space:nowrap;flex-shrink:0">¡Las 40 en bastos!</div>
+        <div class="tag tag-neutral" style="white-space:nowrap;flex-shrink:0">Mazo: 8</div>
+      </div>
+
+
+    <div style="height:505px;flex-shrink:0;position:relative;margin:0 calc(-1 * var(--space-6));background:radial-gradient(ellipse at 50% 30%, #2f7d52 0%, #1f5e3c 55%, #164a2f 100%);border-top:6px solid #8a5a2b;border-bottom:6px solid #8a5a2b;box-sizing:border-box">
+
+      <!-- compañero (top, across from you): hand + their played card below it -->
+      <div style="position:absolute;top:6px;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:6px">
+        <div style="display:flex">
+          <sc-for list="{{backFan}}" as="c" hint-placeholder-count="6">
+            <div style="width:48px;height:68px;margin-left:-20px;background:#3a2a18;border:1px solid rgba(255,255,255,.3);border-radius:3px"></div>
+          </sc-for>
+        </div>
+        <div style="font:500 10px var(--font-body);color:#e9f2ea">Compañero</div>
+      </div>
+      <div style="position:absolute;top:95px;left:50%;transform:translateX(-50%)">
+        <sc-if value="{{topCard.played}}" hint-placeholder-val="{{false}}">
+          <div style="width:48px;height:68px"><image-slot id="{{topCard.slotId}}" placeholder="{{topCard.cardPlaceholder}}" fit="contain"></image-slot></div>
+        </sc-if>
+        <sc-if value="{{topCard.empty}}" hint-placeholder-val="{{false}}">
+          <div style="width:48px;height:68px;border:2px dashed var(--color-neutral-400);border-radius:var(--radius-md)"></div>
+        </sc-if>
+      </div>
+
+      <!-- rival izquierdo: hand + their played card to the right -->
+      <div style="position:absolute;left:14px;top:230px;transform:translateY(-50%);display:flex;align-items:center;gap:8px">
+        <div style="display:flex;flex-direction:column;align-items:center;gap:6px">
+          <div style="display:flex;flex-direction:column">
+            <sc-for list="{{backFan}}" as="c" hint-placeholder-count="6">
+              <div style="width:68px;height:48px;margin-top:-20px;background:#3a2a18;border:1px solid rgba(255,255,255,.3);border-radius:3px"></div>
+            </sc-for>
+          </div>
+          <div style="font:500 10px var(--font-body);color:#e9f2ea">Rival</div>
+        </div>
+        <div style="margin-left:6px">
+          <sc-if value="{{leftCard.played}}" hint-placeholder-val="{{false}}">
+            <div style="width:48px;height:68px"><image-slot id="{{leftCard.slotId}}" placeholder="{{leftCard.cardPlaceholder}}" fit="contain"></image-slot></div>
+          </sc-if>
+          <sc-if value="{{leftCard.empty}}" hint-placeholder-val="{{false}}">
+            <div style="width:48px;height:68px;border:2px dashed var(--color-neutral-400);border-radius:var(--radius-md)"></div>
+          </sc-if>
+        </div>
+      </div>
+
+      <!-- rival derecho: their played card to the left + hand -->
+      <div style="position:absolute;right:14px;top:230px;transform:translateY(-50%);display:flex;align-items:center;gap:8px">
+        <div style="margin-right:6px">
+          <sc-if value="{{rightCard.played}}" hint-placeholder-val="{{false}}">
+            <div style="width:48px;height:68px"><image-slot id="{{rightCard.slotId}}" placeholder="{{rightCard.cardPlaceholder}}" fit="contain"></image-slot></div>
+          </sc-if>
+          <sc-if value="{{rightCard.empty}}" hint-placeholder-val="{{false}}">
+            <div style="width:48px;height:68px;border:2px dashed var(--color-neutral-400);border-radius:var(--radius-md)"></div>
+          </sc-if>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:6px">
+          <div style="display:flex;flex-direction:column">
+            <sc-for list="{{backFan}}" as="c" hint-placeholder-count="6">
+              <div style="width:68px;height:48px;margin-top:-20px;background:#3a2a18;border:1px solid rgba(255,255,255,.3);border-radius:3px"></div>
+            </sc-for>
+          </div>
+          <div style="font:500 10px var(--font-body);color:#e9f2ea">Rival</div>
+        </div>
+      </div>
+
+      <!-- deck + trump, dead center -->
+      <div style="position:absolute;left:50%;top:230px;transform:translate(-50%,-50%);width:56px;height:70px">
+        
+        <div style="position:absolute;left:0;top:0;width:44px;height:62px;transform:rotate(7deg)">
+          
+        <image-slot id="trump-card-table" placeholder="Triunfo" fit="contain"></image-slot></div>
+      </div>
+
+      <!-- your played card, front of your hand -->
+      <div style="position:absolute;left:50%;top:288px;transform:translateX(-50%)">
+        <sc-if value="{{bottomCard.played}}" hint-placeholder-val="{{false}}">
+          <div style="width:54px;height:76px"><image-slot id="{{bottomCard.slotId}}" placeholder="{{bottomCard.cardPlaceholder}}" fit="contain"></image-slot></div>
+        </sc-if>
+        <sc-if value="{{bottomCard.empty}}" hint-placeholder-val="{{false}}">
+          <div style="width:54px;height:76px;border:2px dashed var(--color-accent);border-radius:var(--radius-md)"></div>
+        </sc-if>
+      </div>
+
+      <!-- your hand, on the felt -->
+      <div style="position:absolute;left:50%;bottom:12px;transform:translateX(-50%);display:flex;justify-content:center">
+        <sc-for list="{{handCards}}" as="c" hint-placeholder-count="6">
+          <div style="width:62px;height:88px;margin-left:-18px;transform:{{c.rotate}}">
+            <image-slot id="{{c.slotId}}" placeholder="{{c.cardPlaceholder}}" fit="contain"></image-slot>
+          </div>
+        </sc-for>
+      </div>
+    <div style="position: absolute; left: 392px; top: 196px; width: 44px; height: 62px; border-radius: 3px; background: #3a2a18; border: 1px solid rgba(255,255,255,.35); transform: rotate(-6deg)"></div></div><div style="font:600 12px var(--font-heading);letter-spacing:.06em;color:var(--color-neutral-700);text-transform:uppercase">04 · Mesa de juego</div>
+  </div>
+
+</div>
+
+</div></x-dc>
+<script type="text/x-dc" data-dc-script>
+
+class Component extends DCLogic {
+  renderVals() {
+    const handCards = [
+      { slotId: 'hand-1', cardPlaceholder: '7 de Bastos', rotate: 'rotate(-10deg)' },
+      { slotId: 'hand-2', cardPlaceholder: 'As de Oros', rotate: 'rotate(-5deg)' },
+      { slotId: 'hand-3', cardPlaceholder: 'Sota de Espadas', rotate: 'rotate(0deg)' },
+      { slotId: 'hand-4', cardPlaceholder: 'Rey de Copas', rotate: 'rotate(0deg)' },
+      { slotId: 'hand-5', cardPlaceholder: '3 de Bastos', rotate: 'rotate(5deg)' },
+      { slotId: 'hand-6', cardPlaceholder: '6 de Espadas', rotate: 'rotate(10deg)' }
+    ];
+
+    const topCard = { played: true, empty: false, slotId: 'trick-1', cardPlaceholder: 'Rey de Oros' };
+    const leftCard = { played: false, empty: true };
+    const rightCard = { played: true, empty: false, slotId: 'trick-2', cardPlaceholder: 'As de Bastos' };
+    const bottomCard = { played: false, empty: true };
+
+    const trickCards = [
+      { played: true, empty: false, playerLabel: 'Compañero', slotId: 'trick-1', cardPlaceholder: 'Rey de Oros' },
+      { played: false, empty: true, playerLabel: 'Rival' },
+      { played: true, empty: false, playerLabel: 'Rival', slotId: 'trick-2', cardPlaceholder: 'As de Bastos' },
+      { played: false, empty: true, playerLabel: 'Te toca' }
+    ];
+
+    const rulesPoints = [
+      { label: 'As', pts: 11, glyph: 'A' },
+      { label: 'Tres', pts: 10, glyph: '3' },
+      { label: 'Rey', pts: 4, glyph: 'R' },
+      { label: 'Caballo', pts: 3, glyph: 'C' },
+      { label: 'Sota', pts: 2, glyph: 'S' },
+      { label: '7, 6, 5, 4, 2', pts: 0, glyph: '·' }
+    ];
+
+    return { handCards, trickCards, topCard, leftCard, rightCard, bottomCard, rulesPoints, backFan: [1, 2, 3, 4, 5, 6] };
+  }
+}
+
+</script>
+</body>
+</html>
