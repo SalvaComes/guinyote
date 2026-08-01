@@ -60,9 +60,10 @@ Mientras queden cartas en el mazo:
 **Acciones especiales durante la Fase de Robo:**
 
 #### 🔄 Cambio del Siete de Triunfo
-- Si un jugador tiene el **Siete del palo de triunfo**, puede **cambiarlo por la pinta** (la carta de triunfo visible bajo el mazo).
+- Si un jugador tiene el **Siete del palo de triunfo**, puede **cambiarlo por la pinta** (la carta de triunfo visible bajo el mazo), siempre que la pinta sea de más valor que el Siete.
 - **Condición:** Solo se puede hacer si la pareja del jugador ha ganado al menos una baza.
 - **Momento:** Antes de que se juegue la primera carta de la siguiente baza (tras ganar baza y antes de robar, según variante).
+- **Variante — Cambio del Dos:** Si la pinta es de valor **Siete o inferior** (Cuatro, Cinco, Seis o Siete, ya que el Dos no admite mejora), un jugador con el **Dos del palo de triunfo** puede cambiarlo por la pinta bajo las mismas condiciones y en el mismo momento que el cambio del Siete.
 
 #### 🗣️ Cantes (Las 20 y Las 40)
 - Si un jugador tiene en su mano el **Rey y la Sota del mismo palo**, puede **cantar**:
@@ -137,8 +138,9 @@ Las 6 últimas bazas se juegan con **reglas estrictas** de obligación:
 | Las 10 de últimas                  | ✅ Implementado  | `TurnManager.FinalizarBaza()` añade +10 en última baza      |
 | Parejas (A: J1+J3, B: J2+J4)      | ✅ Implementado  | Asignación de puntos en `TurnManager`                       |
 | IA básica (Greedy)                 | ✅ Implementado  | `IAGreedy` en `IAJugador.cs`                                |
-| Cantes (20 y 40)                   | ❌ Pendiente     | No implementado aún                                         |
-| Cambio del Siete de Triunfo        | ❌ Pendiente     | No implementado aún                                         |
+| Cantes (20 y 40)                   | ✅ Implementado  | `TurnManager.IntentarCantarMejorOpcion()`, obliga a salir con Rey/Sota |
+| Cambio del Siete de Triunfo        | ✅ Implementado  | `TurnManager.IntentarCambiarTriunfo()`, tras ganar baza y antes de robar |
+| Cambio del Dos (pinta de valor ≤7) | ✅ Implementado  | Variante propia: si la pinta es Cuatro/Cinco/Seis/Siete, se cambia por el Dos de triunfo |
 | Tute (4 Reyes o 4 Sotas)          | ❌ Pendiente     | No implementado aún                                         |
 | Partida a 101 puntos (multi-mano) | ❌ Pendiente     | Actualmente se juega una sola mano                          |
 | Regla de las 30 malas              | ❌ Pendiente     | No implementado aún                                         |

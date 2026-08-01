@@ -84,7 +84,7 @@ namespace GuinoteApp.Managers
             if (turnManager != null)
             {
                 SuscribirEventosTurnManager();
-                turnManager.Inicializar(manosJugadores, baraja, triunfo.Palo, GamePhase.FaseRobo);
+                turnManager.Inicializar(manosJugadores, baraja, triunfo, GamePhase.FaseRobo);
             }
             else
             {
@@ -103,6 +103,8 @@ namespace GuinoteApp.Managers
             turnManager.OnBazaResuelta       += ManejarBazaResuelta;
             turnManager.OnCambioFase         += ManejarCambioFase;
             turnManager.OnFinPartida         += ManejarFinPartida;
+            turnManager.OnCante              += ManejarCante;
+            turnManager.OnCambioTriunfo      += ManejarCambioTriunfo;
         }
 
         // =====================================================================
@@ -156,6 +158,23 @@ namespace GuinoteApp.Managers
             string ganador = ptsA > ptsB ? "Pareja A (J1+J3)" : (ptsB > ptsA ? "Pareja B (J2+J4)" : "EMPATE");
             Debug.Log($"[GameManager] FIN — A:{ptsA} | B:{ptsB} → {ganador}");
             // TODO: Mostrar pantalla de resultado
+        }
+
+        private void ManejarCante(int jugadorIdx, Palo palo, int puntos)
+        {
+            Debug.Log($"[GameManager] J{jugadorIdx + 1} canta {puntos} en {palo}.");
+        }
+
+        private void ManejarCambioTriunfo(int jugadorIdx, Carta cartaEntregada, Carta cartaRecibida)
+        {
+            Debug.Log($"[GameManager] J{jugadorIdx + 1} cambia el {cartaEntregada.Rango} por la pinta ({cartaRecibida}).");
+
+            if (cartaVisualManager != null)
+            {
+                cartaVisualManager.MostrarTriunfo(cartaRecibida);
+                if (jugadorIdx == 0)
+                    cartaVisualManager.MostrarManoJugador(manosJugadores[0]);
+            }
         }
 
         // =====================================================================

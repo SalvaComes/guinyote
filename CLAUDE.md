@@ -54,8 +54,6 @@ The codebase enforces strict Separation of Concerns (Clean Architecture / MVC pa
 See `REGLAS_GUINOTE.md` at the project root for the full rules of Guiñote, including an implementation status table showing what's done and what's pending.
 
 ## Pending Features (Quick Reference)
-- **Cantes (20 & 40):** King + Jack of same suit. 20 pts if not trump, 40 pts if trump.
-- **Trump Seven Swap:** Exchange the 7 of trumps for the face-up trump card (pinta).
 - **Tute:** Holding all 4 Kings or all 4 Jacks → instant win.
 - **Match to 101 points:** Multi-hand game with score accumulation.
 - **30 Malas Rule:** Must earn at least 30 trick-points (excluding cantes) to be able to win.
