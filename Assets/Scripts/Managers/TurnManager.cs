@@ -29,6 +29,7 @@ namespace GuinoteApp.Managers
         private List<Carta>[] manosJugadores;       // [0..3]
         private GestorBaraja baraja;
         private Palo paloTriunfo;
+        private Carta triunfoVisible;                // La pinta, mientras no se haya cambiado/agotado
         private GamePhase faseActual;
 
         // =====================================================================
@@ -39,6 +40,12 @@ namespace GuinoteApp.Managers
         private int jugadorQueAbre;                 // quien abre la baza
         private EstadoBaza bazaActual;
         private int numeroBaza;
+
+        // Palos ya cantados en la partida (Rey+Sota solo se puede cantar una vez por palo)
+        private HashSet<Palo> palosCantados = new HashSet<Palo>();
+
+        // Palo del cante recien anunciado: el jugador que abre debe salir con Rey o Sota de este palo
+        private Palo? paloCantoActual;
 
         // Puntos acumulados por pareja (A = jugadores 0,2 | B = jugadores 1,3)
         private int puntosPareja_A;
@@ -66,6 +73,12 @@ namespace GuinoteApp.Managers
         /// <summary>Cambio de fase de la partida.</summary>
         public event Action<GamePhase> OnCambioFase;
 
+        /// <summary>Un jugador canta 20 o 40. Parametros: jugadorIdx, palo cantado, puntos (20 o 40).</summary>
+        public event Action<int, Palo, int> OnCante;
+
+        /// <summary>Un jugador cambia el 7 (o el 2) de triunfo por la pinta. Parametros: jugadorIdx, carta entregada, carta recibida.</summary>
+        public event Action<int, Carta, Carta> OnCambioTriunfo;
+
         // =====================================================================
         // Inicializacion publica
         // =====================================================================
@@ -77,18 +90,21 @@ namespace GuinoteApp.Managers
         public void Inicializar(
             List<Carta>[] manos,
             GestorBaraja gestorBaraja,
-            Palo triunfo,
+            Carta triunfo,
             GamePhase fase,
             int jugadorInicial = 0)
         {
             manosJugadores = manos;
             baraja = gestorBaraja;
-            paloTriunfo = triunfo;
+            paloTriunfo = triunfo.Palo;
+            triunfoVisible = triunfo;
             faseActual = fase;
             jugadorQueAbre = jugadorInicial;
             numeroBaza = 0;
             puntosPareja_A = 0;
             puntosPareja_B = 0;
+            palosCantados.Clear();
+            paloCantoActual = null;
 
             // Crear una IA greedy compartida para los 3 jugadores IA
             var ia = new IAGreedy();
@@ -120,6 +136,12 @@ namespace GuinoteApp.Managers
             numeroBaza++;
             bazaActual = new EstadoBaza();
             jugadorActual = jugadorQueAbre;
+
+            // Cantes: solo puede cantar quien abre baza, solo en Fase de Robo, y solo si su
+            // pareja gano la baza anterior (numeroBaza > 1 lo garantiza, ya que quien abre
+            // es siempre el ganador de la ultima baza)
+            if (numeroBaza > 1 && faseActual == GamePhase.FaseRobo)
+                IntentarCantarMejorOpcion(jugadorActual);
 
             Debug.Log($"[TurnManager] ── Baza {numeroBaza} ── Sale: J{jugadorActual + 1} | Fase: {faseActual}");
             AvanzarTurno();
@@ -155,6 +177,19 @@ namespace GuinoteApp.Managers
             {
                 Debug.LogWarning("[TurnManager] No es el turno del jugador humano.");
                 return false;
+            }
+
+            // Tras cantar, la salida obligatoria es el Rey o la Sota del palo cantado
+            if (paloCantoActual.HasValue && bazaActual.CartaSalida == null)
+            {
+                bool cumpleObligacionCante = carta.Palo == paloCantoActual.Value &&
+                    (carta.Rango == Rango.Rey || carta.Rango == Rango.Sota);
+
+                if (!cumpleObligacionCante)
+                {
+                    Debug.LogWarning($"[TurnManager] Tras cantar debes salir con el Rey o la Sota de {paloCantoActual.Value}.");
+                    return false;
+                }
             }
 
             // Validar en Fase Arrastre
@@ -195,6 +230,16 @@ namespace GuinoteApp.Managers
                 yield break;
             }
 
+            // Tras cantar, la IA debe salir obligatoriamente con el Rey o la Sota del palo cantado
+            if (paloCantoActual.HasValue && bazaActual.CartaSalida == null)
+            {
+                var mano = manosJugadores[jugadorIdx];
+                Carta cartaObligada = mano.Find(c => c.Palo == paloCantoActual.Value && c.Rango == Rango.Sota)
+                                    ?? mano.Find(c => c.Palo == paloCantoActual.Value && c.Rango == Rango.Rey);
+                if (cartaObligada != null)
+                    cartaElegida = cartaObligada;
+            }
+
             Debug.Log($"[TurnManager] J{jugadorIdx + 1} (IA) juega: {cartaElegida} ({cartaElegida.ObtenerPuntos()} pts)");
             RegistrarJugada(jugadorIdx, cartaElegida);
         }
@@ -202,6 +247,10 @@ namespace GuinoteApp.Managers
         /// <summary>Registra una carta jugada y avanza el estado de la baza.</summary>
         private void RegistrarJugada(int jugadorIdx, Carta carta)
         {
+            // La obligacion de cante solo aplica a la carta de salida de la baza
+            if (bazaActual.CartaSalida == null)
+                paloCantoActual = null;
+
             manosJugadores[jugadorIdx].Remove(carta);
             bazaActual.RegistrarJugada(jugadorIdx, carta, paloTriunfo);
             OnCartaJugada?.Invoke(jugadorIdx, carta);
@@ -262,6 +311,15 @@ namespace GuinoteApp.Managers
             // El ganador de la baza abre la siguiente
             jugadorQueAbre = ganador;
 
+            // Cambio del 7 (o del 2 si la pinta es de valor 7 o inferior): solo en Fase Robo,
+            // solo puede hacerlo la pareja que acaba de ganar la baza, antes de robar
+            if (faseActual == GamePhase.FaseRobo)
+            {
+                int[] jugadoresPareja = ganaPareja_A ? new[] { 0, 2 } : new[] { 1, 3 };
+                foreach (int idx in jugadoresPareja)
+                    IntentarCambiarTriunfo(idx);
+            }
+
             // Robo de cartas (solo en Fase Robo, con cartas en el mazo)
             if (faseActual == GamePhase.FaseRobo)
                 yield return StartCoroutine(RealizarRobo(ganador));
@@ -296,6 +354,7 @@ namespace GuinoteApp.Managers
             if (baraja.CartasRestantes() == 0 && faseActual == GamePhase.FaseRobo)
             {
                 faseActual = GamePhase.FaseArrastre;
+                triunfoVisible = null; // La pinta ya no esta disponible: ni cante ni cambio a partir de aqui
                 Debug.Log("[TurnManager] Mazo agotado → FASE ARRASTRE");
                 OnCambioFase?.Invoke(faseActual);
             }
@@ -320,6 +379,97 @@ namespace GuinoteApp.Managers
             Debug.Log($"[TurnManager] FIN DE PARTIDA — A:{puntosPareja_A} | B:{puntosPareja_B} — {resultado}");
             OnCambioFase?.Invoke(faseActual);
             OnFinPartida?.Invoke(puntosPareja_A, puntosPareja_B);
+        }
+
+        // =====================================================================
+        // Cantes (Las 20 y Las 40)
+        // =====================================================================
+
+        /// <summary>Comprueba si la mano tiene el Rey y la Sota de un palo determinado.</summary>
+        private static bool TieneReyYSota(List<Carta> mano, Palo palo)
+        {
+            bool tieneRey = false, tieneSota = false;
+            foreach (Carta c in mano)
+            {
+                if (c.Palo == palo && c.Rango == Rango.Rey) tieneRey = true;
+                if (c.Palo == palo && c.Rango == Rango.Sota) tieneSota = true;
+            }
+            return tieneRey && tieneSota;
+        }
+
+        /// <summary>
+        /// Busca el mejor cante disponible para el jugador (prioriza 40 sobre 20, ya que
+        /// solo se puede cantar un palo por baza) y lo anuncia si existe.
+        /// </summary>
+        private bool IntentarCantarMejorOpcion(int jugadorIdx)
+        {
+            List<Carta> mano = manosJugadores[jugadorIdx];
+            Palo? mejorPalo = null;
+            int mejorPuntos = 0;
+
+            foreach (Palo palo in Enum.GetValues(typeof(Palo)))
+            {
+                if (palosCantados.Contains(palo)) continue;
+                if (!TieneReyYSota(mano, palo)) continue;
+
+                int puntos = palo == paloTriunfo ? 40 : 20;
+                if (puntos > mejorPuntos)
+                {
+                    mejorPuntos = puntos;
+                    mejorPalo = palo;
+                }
+            }
+
+            if (mejorPalo == null) return false;
+
+            palosCantados.Add(mejorPalo.Value);
+            paloCantoActual = mejorPalo.Value;
+
+            bool esPareja_A = (jugadorIdx == 0 || jugadorIdx == 2);
+            if (esPareja_A) puntosPareja_A += mejorPuntos;
+            else puntosPareja_B += mejorPuntos;
+
+            Debug.Log($"[TurnManager] J{jugadorIdx + 1} canta {mejorPuntos} en {mejorPalo.Value}. Debe salir con Rey o Sota de ese palo.");
+            OnCante?.Invoke(jugadorIdx, mejorPalo.Value, mejorPuntos);
+            return true;
+        }
+
+        // =====================================================================
+        // Cambio del 7 (y del 2) de triunfo por la pinta
+        // =====================================================================
+
+        /// <summary>
+        /// Intenta cambiar la pinta (carta de triunfo visible) por el 7 de triunfo del jugador
+        /// si la pinta es superior al 7, o por el 2 de triunfo si la pinta es de valor 7 o
+        /// inferior (variante que extiende el cambio del 7 al caso de pintas bajas).
+        /// Solo aplicable justo despues de que la pareja del jugador gane una baza, en Fase de Robo.
+        /// </summary>
+        private bool IntentarCambiarTriunfo(int jugadorIdx)
+        {
+            if (triunfoVisible == null) return false;
+
+            Rango rangoVisible = triunfoVisible.Rango;
+            Rango rangoBuscado;
+
+            if (rangoVisible > Rango.Siete)
+                rangoBuscado = Rango.Siete;
+            else if (rangoVisible > Rango.Dos)
+                rangoBuscado = Rango.Dos;
+            else
+                return false; // La pinta ya es el Dos: no hay mejora posible
+
+            List<Carta> mano = manosJugadores[jugadorIdx];
+            Carta cartaPropia = mano.Find(c => c.Palo == paloTriunfo && c.Rango == rangoBuscado);
+            if (cartaPropia == null) return false;
+
+            Carta cartaRecibida = triunfoVisible;
+            mano.Remove(cartaPropia);
+            mano.Add(cartaRecibida);
+            triunfoVisible = cartaPropia;
+
+            Debug.Log($"[TurnManager] J{jugadorIdx + 1} cambia el {cartaPropia.Rango} de triunfo por la pinta ({cartaRecibida}).");
+            OnCambioTriunfo?.Invoke(jugadorIdx, cartaPropia, cartaRecibida);
+            return true;
         }
 
         // =====================================================================

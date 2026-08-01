@@ -54,8 +54,6 @@ Assets/Scripts/
 Consultar siempre `REGLAS_GUINOTE.md` en la raíz del proyecto para las reglas completas del Guiñote, incluyendo la tabla de estado de implementación (qué está hecho y qué falta).
 
 ## 6. Funcionalidades Pendientes (Referencia Rápida)
-- **Cantes (20 y 40):** Rey + Sota del mismo palo. 20 pts si no es triunfo, 40 pts si es triunfo.
-- **Cambio del Siete de Triunfo:** Intercambiar el 7 de triunfo por la pinta.
 - **Tute:** 4 Reyes o 4 Sotas → victoria instantánea.
 - **Partida a 101 puntos:** Multi-mano con acumulación de puntos.
 - **Regla de las 30 malas:** Mínimo 30 pts de juego (sin cantes) para poder ganar.
