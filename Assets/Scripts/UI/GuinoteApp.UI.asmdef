@@ -3,6 +3,7 @@
     "rootNamespace": "GuinoteApp.UI",
     "references": [
         "GuinoteApp.Core",
+        "UnityEngine.UI",
         "Unity.TextMeshPro"
     ],
     "includePlatforms": [],
