@@ -27,9 +27,10 @@
 /*.VC.db
 /*.Assembly-CSharp*
 
-# OS generated files
-.DS_Store
-.DS_Store?
-ehthumbs.db
-Icon?
-Thumbs.db
+# Tool & Agent folders
+.claude/
+.gemini/
+
+# Unity Recovery
+/[Aa]ssets/_Recovery/
+
