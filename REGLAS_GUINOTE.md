@@ -137,7 +137,7 @@ Las 6 últimas bazas se juegan con **reglas estrictas** de obligación:
 | Comparación de cartas (GanaA)      | ✅ Implementado  | `ValidadorReglas.GanaA()`                                   |
 | Las 10 de últimas                  | ✅ Implementado  | `TurnManager.FinalizarBaza()` añade +10 en última baza      |
 | Parejas (A: J1+J3, B: J2+J4)      | ✅ Implementado  | Asignación de puntos en `TurnManager`                       |
-| IA básica (Greedy)                 | ✅ Implementado  | `IAGreedy` en `IAJugador.cs`                                |
+| IA con 3 niveles de dificultad     | ✅ Implementado  | `IAFacil`/`IANormal`/`IADificil` (`IAFactory.Crear`), configurable por bot en `TurnManager` |
 | Cantes (20 y 40)                   | ✅ Implementado  | `TurnManager.IntentarCantarMejorOpcion()`, obliga a salir con Rey/Sota |
 | Cambio del Siete de Triunfo        | ✅ Implementado  | `TurnManager.IntentarCambiarTriunfo()`, tras ganar baza y antes de robar |
 | Cambio del Dos (pinta de valor ≤7) | ✅ Implementado  | Variante propia: si la pinta es Cuatro/Cinco/Seis/Siete, se cambia por el Dos de triunfo |
@@ -148,7 +148,32 @@ Las 6 últimas bazas se juegan con **reglas estrictas** de obligación:
 
 ---
 
-## 8. Glosario
+## 8. Niveles de Dificultad de la IA
+
+Los jugadores 2, 3 y 4 son controlados por IA. Cada uno usa una de estas tres estrategias
+(`GuinoteApp.Core.IEstrategiaIA`), configurable de forma independiente en el Inspector de
+`TurnManager`:
+
+- **Fácil (`IAFacil`):** Respeta las reglas obligatorias de Arrastre (asistir/montar/fallar)
+  pero elige siempre al azar entre las jugadas válidas. No intenta ganar bazas ni protege
+  sus cartas de valor.
+- **Normal (`IANormal`):** Estrategia *greedy* — si puede ganar la baza, juega la carta
+  válida más alta que gane; si no puede, descarta la de menor valor. No cuenta cartas ni
+  tiene en cuenta a su compañero.
+- **Difícil (`IADificil`):** Añade sobre la estrategia Normal:
+  - **Conciencia de compañero:** si su compañero ya va ganando la baza, evita malgastar
+    cartas de valor salvo que sea seguro hacerlo.
+  - **Conteo de cartas:** al abrir baza en Fase de Arrastre, cuenta los triunfos ya
+    jugados para decidir si puede abrir con su carta más valiosa sin riesgo de que se la
+    fallen, o si conviene tantear primero con una carta barata.
+  - **Ganar barato:** cuando puede ganar la baza, juega la carta mínima suficiente en
+    lugar de la más alta, conservando sus cartas fuertes para bazas futuras.
+
+`IAFactory.Crear(NivelDificultadIA)` centraliza la creación de la estrategia adecuada.
+
+---
+
+## 9. Glosario
 
 | Término       | Significado                                                                 |
 |---------------|-----------------------------------------------------------------------------|

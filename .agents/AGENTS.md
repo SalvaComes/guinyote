@@ -12,7 +12,8 @@ Assets/Scripts/
 │   ├── GuinoteCore.cs     # Enums (Palo, Rango, GamePhase), modelo Carta, GestorBaraja
 │   ├── EstadoBaza.cs      # Estado y cálculo de la baza actual
 │   ├── ValidadorReglas.cs # Reglas de arrastre (Asistir, Montar, Fallar)
-│   └── IAJugador.cs       # Estrategias de la Inteligencia Artificial (IAGreedy)
+│   ├── IAJugador.cs       # Interfaz IEstrategiaIA, NivelDificultadIA, IAFactory
+│   └── IAFacil.cs / IANormal.cs / IADificil.cs # Las 3 estrategias de IA (por dificultad)
 ├── Managers/          # Coordinadores MonoBehavior y Corrutinas de Unity
 │   ├── GameManager.cs        # Punto de entrada, inicialización de partida
 │   ├── TurnManager.cs        # Orquestación de turnos, corrutinas de delays, robo y fases

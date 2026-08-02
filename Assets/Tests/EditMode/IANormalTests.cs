@@ -5,14 +5,16 @@ using NUnit.Framework;
 
 namespace GuinoteApp.Core.Tests
 {
-    public class IAGreedyTests
+    public class IANormalTests
     {
+        private static readonly IReadOnlyList<Carta> SinHistorial = new List<Carta>();
+
         [Test]
         public void ElegirCarta_ManoVacia_DevuelveNull()
         {
-            var ia = new IAGreedy(new Random(1));
+            var ia = new IANormal(new Random(1));
 
-            Carta resultado = ia.ElegirCarta(new List<Carta>(), new EstadoBaza(), GamePhase.FaseRobo, Palo.Bastos);
+            Carta resultado = ia.ElegirCarta(1, new List<Carta>(), new EstadoBaza(), GamePhase.FaseRobo, Palo.Bastos, SinHistorial);
 
             Assert.IsNull(resultado);
         }
@@ -20,9 +22,9 @@ namespace GuinoteApp.Core.Tests
         [Test]
         public void ElegirCarta_ManoNull_DevuelveNull()
         {
-            var ia = new IAGreedy(new Random(1));
+            var ia = new IANormal(new Random(1));
 
-            Carta resultado = ia.ElegirCarta(null, new EstadoBaza(), GamePhase.FaseRobo, Palo.Bastos);
+            Carta resultado = ia.ElegirCarta(1, null, new EstadoBaza(), GamePhase.FaseRobo, Palo.Bastos, SinHistorial);
 
             Assert.IsNull(resultado);
         }
@@ -30,7 +32,7 @@ namespace GuinoteApp.Core.Tests
         [Test]
         public void FaseRobo_DevuelveSiempreUnaCartaDeLaMano()
         {
-            var ia = new IAGreedy(new Random(42));
+            var ia = new IANormal(new Random(42));
             var mano = new List<Carta>
             {
                 new Carta(Palo.Oros, Rango.As),
@@ -40,7 +42,7 @@ namespace GuinoteApp.Core.Tests
 
             for (int i = 0; i < 20; i++)
             {
-                Carta elegida = ia.ElegirCarta(mano, new EstadoBaza(), GamePhase.FaseRobo, Palo.Bastos);
+                Carta elegida = ia.ElegirCarta(1, mano, new EstadoBaza(), GamePhase.FaseRobo, Palo.Bastos, SinHistorial);
                 CollectionAssert.Contains(mano, elegida);
             }
         }
@@ -48,7 +50,7 @@ namespace GuinoteApp.Core.Tests
         [Test]
         public void FaseArrastre_AlAbrirBaza_JuegaLaCartaDeMayorValor()
         {
-            var ia = new IAGreedy(new Random(1));
+            var ia = new IANormal(new Random(1));
             var mano = new List<Carta>
             {
                 new Carta(Palo.Oros, Rango.Dos),
@@ -56,7 +58,7 @@ namespace GuinoteApp.Core.Tests
                 new Carta(Palo.Espadas, Rango.Rey), // 4 puntos
             };
 
-            Carta elegida = ia.ElegirCarta(mano, new EstadoBaza(), GamePhase.FaseArrastre, Palo.Bastos);
+            Carta elegida = ia.ElegirCarta(1, mano, new EstadoBaza(), GamePhase.FaseArrastre, Palo.Bastos, SinHistorial);
 
             Assert.AreEqual(Rango.As, elegida.Rango);
         }
@@ -64,7 +66,7 @@ namespace GuinoteApp.Core.Tests
         [Test]
         public void FaseArrastre_SiPuedeGanar_JuegaLaCartaValidaMasAlta()
         {
-            var ia = new IAGreedy(new Random(1));
+            var ia = new IANormal(new Random(1));
             var baza = new EstadoBaza();
             baza.RegistrarJugada(0, new Carta(Palo.Oros, Rango.Sota), Palo.Bastos);
 
@@ -76,7 +78,7 @@ namespace GuinoteApp.Core.Tests
                 new Carta(Palo.Copas, Rango.Tres),
             };
 
-            Carta elegida = ia.ElegirCarta(mano, baza, GamePhase.FaseArrastre, Palo.Bastos);
+            Carta elegida = ia.ElegirCarta(1, mano, baza, GamePhase.FaseArrastre, Palo.Bastos, SinHistorial);
 
             Assert.AreEqual(Palo.Oros, elegida.Palo);
             Assert.AreEqual(Rango.As, elegida.Rango);
@@ -85,7 +87,7 @@ namespace GuinoteApp.Core.Tests
         [Test]
         public void FaseArrastre_SiNoPuedeGanar_DescartaLaCartaDeMenorValor()
         {
-            var ia = new IAGreedy(new Random(1));
+            var ia = new IANormal(new Random(1));
             var baza = new EstadoBaza();
             baza.RegistrarJugada(0, new Carta(Palo.Oros, Rango.Rey), Palo.Bastos);
 
@@ -97,7 +99,7 @@ namespace GuinoteApp.Core.Tests
                 new Carta(Palo.Oros, Rango.Dos),  // 0 puntos, no supera al Rey
             };
 
-            Carta elegida = ia.ElegirCarta(mano, baza, GamePhase.FaseArrastre, Palo.Bastos);
+            Carta elegida = ia.ElegirCarta(1, mano, baza, GamePhase.FaseArrastre, Palo.Bastos, SinHistorial);
 
             Assert.AreEqual(Rango.Dos, elegida.Rango, "Debe descartar la carta de menor valor si no puede ganar");
         }
@@ -105,7 +107,7 @@ namespace GuinoteApp.Core.Tests
         [Test]
         public void FaseArrastre_SinPaloNiTriunfo_JuegaLaCartaDeMenorValorDeCualquierPalo()
         {
-            var ia = new IAGreedy(new Random(1));
+            var ia = new IANormal(new Random(1));
             var baza = new EstadoBaza();
             baza.RegistrarJugada(0, new Carta(Palo.Oros, Rango.Rey), Palo.Bastos);
 
@@ -116,7 +118,7 @@ namespace GuinoteApp.Core.Tests
                 new Carta(Palo.Espadas, Rango.Dos), // 0 puntos, la mas barata
             };
 
-            Carta elegida = ia.ElegirCarta(mano, baza, GamePhase.FaseArrastre, Palo.Bastos);
+            Carta elegida = ia.ElegirCarta(1, mano, baza, GamePhase.FaseArrastre, Palo.Bastos, SinHistorial);
 
             Assert.AreEqual(Palo.Espadas, elegida.Palo);
             Assert.AreEqual(Rango.Dos, elegida.Rango);

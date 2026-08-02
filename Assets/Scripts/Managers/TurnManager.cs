@@ -22,6 +22,11 @@ namespace GuinoteApp.Managers
         [SerializeField] private float delayEntreCartas = 0.3f;
         [SerializeField] private float delayFinBaza = 1.2f;
 
+        [Header("Dificultad IA (jugadores 2, 3 y 4)")]
+        [SerializeField] private NivelDificultadIA nivelJugador2 = NivelDificultadIA.Normal;
+        [SerializeField] private NivelDificultadIA nivelJugador3 = NivelDificultadIA.Normal;
+        [SerializeField] private NivelDificultadIA nivelJugador4 = NivelDificultadIA.Normal;
+
         // =====================================================================
         // Estado de partida (referencias compartidas con GameManager)
         // =====================================================================
@@ -53,6 +58,9 @@ namespace GuinoteApp.Managers
 
         // IA para los 3 jugadores no-humanos
         private IEstrategiaIA[] estrategiasIA;
+
+        // Todas las cartas jugadas desde el reparto de esta mano (para IA con conteo de cartas)
+        private List<Carta> historialCartasJugadas = new List<Carta>();
 
         // =====================================================================
         // Eventos publicos
@@ -105,15 +113,14 @@ namespace GuinoteApp.Managers
             puntosPareja_B = 0;
             palosCantados.Clear();
             paloCantoActual = null;
+            historialCartasJugadas.Clear();
 
-            // Crear una IA greedy compartida para los 3 jugadores IA
-            var ia = new IAGreedy();
             estrategiasIA = new IEstrategiaIA[]
             {
                 null, // Jugador 0 es humano
-                ia,
-                ia,
-                ia
+                IAFactory.Crear(nivelJugador2),
+                IAFactory.Crear(nivelJugador3),
+                IAFactory.Crear(nivelJugador4)
             };
 
             Debug.Log($"[TurnManager] Inicializado. Triunfo: {paloTriunfo} | Fase: {faseActual} | Abre: J{jugadorQueAbre + 1}");
@@ -219,10 +226,12 @@ namespace GuinoteApp.Managers
             yield return new WaitForSeconds(delayIAPiensa);
 
             Carta cartaElegida = estrategiasIA[jugadorIdx].ElegirCarta(
+                jugadorIdx,
                 manosJugadores[jugadorIdx],
                 bazaActual,
                 faseActual,
-                paloTriunfo);
+                paloTriunfo,
+                historialCartasJugadas);
 
             if (cartaElegida == null)
             {
@@ -253,6 +262,7 @@ namespace GuinoteApp.Managers
 
             manosJugadores[jugadorIdx].Remove(carta);
             bazaActual.RegistrarJugada(jugadorIdx, carta, paloTriunfo);
+            historialCartasJugadas.Add(carta);
             OnCartaJugada?.Invoke(jugadorIdx, carta);
 
             Debug.Log($"[TurnManager] J{jugadorIdx + 1} juega: {carta} | {bazaActual}");
