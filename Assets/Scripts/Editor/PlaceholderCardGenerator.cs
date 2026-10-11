@@ -1,7 +1,8 @@
-﻿using UnityEngine;
+using UnityEngine;
 using UnityEditor;
 using System.IO;
 using GuinoteApp.Core;
+using GuinoteApp.View;
 
 namespace GuinoteApp.Editor
 {
@@ -25,7 +26,63 @@ namespace GuinoteApp.Editor
         private static readonly Color COL_BG       = new Color(0.98f, 0.96f, 0.90f);
         private static readonly Color COL_DORSO    = new Color(0.12f, 0.18f, 0.38f);
 
-        [MenuItem("Guinote/Generar Sprites Placeholder")]
+        [MenuItem("Tools/Gui\u00f1ote/\U0001f4e6 Crear CartaPrefab", false, 20)]
+        public static void CrearCartaPrefab()
+        {
+            const string prefabDir  = "Assets/Prefabs";
+            const string prefabPath = "Assets/Prefabs/CartaPrefab.prefab";
+
+            if (!Directory.Exists(prefabDir))
+                Directory.CreateDirectory(prefabDir);
+
+            if (File.Exists(prefabPath))
+            {
+                EditorUtility.DisplayDialog("Prefab ya existe",
+                    $"Ya existe un prefab en:\n{prefabPath}\n\nBórralo primero si quieres regenerarlo.", "OK");
+                return;
+            }
+
+            // Crear GO temporal
+            GameObject go = new GameObject("CartaPrefab");
+
+            // SpriteRenderer
+            SpriteRenderer sr = go.AddComponent<SpriteRenderer>();
+            // Crear sorting layer "Cards" si no existe (requiere serialización)
+            sr.sortingLayerName = "Default"; // cambiar a "Cards" manualmente si el layer existe
+            sr.sortingOrder     = 0;
+
+            // BoxCollider2D
+            BoxCollider2D col  = go.AddComponent<BoxCollider2D>();
+            col.size           = new Vector2(1f, 1.4f);
+            col.isTrigger      = true;
+
+            // CardView
+            go.AddComponent<CardView>();
+
+            // Guardar como prefab
+            bool success;
+            PrefabUtility.SaveAsPrefabAsset(go, prefabPath, out success);
+            Object.DestroyImmediate(go);
+
+            AssetDatabase.Refresh();
+
+            if (success)
+            {
+                Debug.Log($"[PlaceholderCardGenerator] Prefab creado en {prefabPath}");
+                EditorUtility.DisplayDialog("Prefab creado",
+                    $"\u2705 CartaPrefab.prefab creado en:\n{prefabPath}\n\n" +
+                    "Recuerda asignarlo en CartaVisualManager > cartaPrefab.", "OK");
+
+                // Seleccionar el asset recién creado
+                Selection.activeObject = AssetDatabase.LoadAssetAtPath<GameObject>(prefabPath);
+            }
+            else
+            {
+                Debug.LogError("[PlaceholderCardGenerator] Error al crear el prefab.");
+            }
+        }
+
+        [MenuItem("Tools/Gui\u00f1ote/\U0001f5bc Generar Sprites Placeholder", false, 21)]
         public static void GenerarTodos()
         {
             if (!Directory.Exists(OUTPUT_PATH))

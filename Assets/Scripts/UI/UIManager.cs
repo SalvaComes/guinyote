@@ -22,6 +22,11 @@ namespace GuinoteApp.UI
         [Header("Configuración")]
         [SerializeField] private float duracionTransicion = 0.25f;
 
+        [Header("Escena de juego (mundo 3D)")]
+        [Tooltip("Objetos que solo deben verse durante la Mesa de Juego (p.ej. el Tapete). " +
+                 "Se ocultan en el resto de pantallas para que no asomen detrás del Canvas.")]
+        [SerializeField] private GameObject[] objetosSoloMesaDeJuego;
+
         // =================================================================
         // Estado
         // =================================================================
@@ -94,6 +99,14 @@ namespace GuinoteApp.UI
 
             panelActual = nuevoPanelGO;
             PantallaActual = pantalla;
+
+            bool mostrarEscena3D = pantalla == PantallaID.MesaDeJuego;
+            if (objetosSoloMesaDeJuego != null)
+            {
+                foreach (GameObject go in objetosSoloMesaDeJuego)
+                    if (go != null) go.SetActive(mostrarEscena3D);
+            }
+
             Debug.Log($"[UIManager] Pantalla activa: {pantalla}");
         }
 

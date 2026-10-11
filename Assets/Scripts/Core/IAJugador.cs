@@ -8,32 +8,26 @@ namespace GuinoteApp.Core
     // =========================================================================
 
     /// <summary>
-    /// Contrato que debe cumplir cualquier estrategia de IA.
-    /// Recibe el estado de la partida y devuelve la carta que decide jugar.
+    /// Contrato que debe cumplir cualquier estrategia de IA. Cada decision recibe un
+    /// <see cref="ContextoIA"/> con la informacion publica de la partida.
     /// </summary>
     public interface IEstrategiaIA
     {
+        /// <summary>Elige la carta a jugar. Nunca null si la mano tiene cartas.</summary>
+        Carta ElegirCarta(ContextoIA ctx);
+
         /// <summary>
-        /// Elige la carta a jugar.
+        /// Decide si canta y que palo. Se consulta al abrir baza si la mano tiene Rey y Sota
+        /// de algun palo aun no cantado. Devuelve null para no cantar.
         /// </summary>
-        /// <param name="jugadorIdx">Indice (0-3) del jugador IA que decide.</param>
-        /// <param name="mano">Mano del jugador IA.</param>
-        /// <param name="estadoBaza">Estado actual de la baza en curso.</param>
-        /// <param name="fase">Fase actual de la partida.</param>
-        /// <param name="triunfo">Palo de triunfo.</param>
-        /// <param name="cartasJugadasEnLaMano">
-        /// Todas las cartas jugadas por cualquier jugador desde el reparto de esta mano
-        /// (bazas anteriores incluidas, sin incluir la baza en curso). Permite a las IA
-        /// mas avanzadas contar cartas (p.ej. cuantos triunfos quedan por salir).
-        /// </param>
-        /// <returns>La carta elegida. Nunca null si la mano tiene cartas.</returns>
-        Carta ElegirCarta(
-            int jugadorIdx,
-            List<Carta> mano,
-            EstadoBaza estadoBaza,
-            GamePhase fase,
-            Palo triunfo,
-            IReadOnlyList<Carta> cartasJugadasEnLaMano);
+        /// <param name="palosDisponibles">Palos cantables ahora (nunca vacio).</param>
+        Palo? DecidirCante(ContextoIA ctx, IReadOnlyList<Palo> palosDisponibles);
+
+        /// <summary>
+        /// Decide si cambia la pinta por <paramref name="cartaPropia"/> (el 7 o el 2 de triunfo).
+        /// Se consulta tras ganar la pareja una baza en Fase Robo.
+        /// </summary>
+        bool DecidirCambio(ContextoIA ctx, Carta cartaPropia);
     }
 
     // =========================================================================
@@ -41,7 +35,7 @@ namespace GuinoteApp.Core
     // =========================================================================
 
     /// <summary>Nivel de dificultad de una estrategia de IA.</summary>
-    public enum NivelDificultadIA { Facil, Normal, Dificil }
+    public enum NivelDificultadIA { Facil, Normal, Dificil, Experto }
 
     /// <summary>Fabrica de estrategias de IA a partir de un nivel de dificultad.</summary>
     public static class IAFactory
@@ -52,6 +46,7 @@ namespace GuinoteApp.Core
             {
                 case NivelDificultadIA.Facil: return new IAFacil(rng);
                 case NivelDificultadIA.Dificil: return new IADificil(rng);
+                case NivelDificultadIA.Experto: return new IAExperto(rng);
                 default: return new IANormal(rng);
             }
         }

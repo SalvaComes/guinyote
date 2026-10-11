@@ -4,18 +4,24 @@ using System.Collections.Generic;
 namespace GuinoteApp.Core
 {
     /// <summary>
-    /// IA de dificultad Normal (estrategia greedy):
-    ///   - Fase Robo: juega una carta aleatoria.
-    ///   - Fase Arrastre:
-    ///       1. Obtiene las jugadas validas segun ValidadorReglas.
-    ///       2. Si puede ganar la baza → juega la carta valida MAS ALTA que gane
-    ///          (maximiza puntos capturados).
-    ///       3. Si no puede ganar → descarta la carta de MENOR VALOR
-    ///          (minimiza puntos perdidos).
-    /// No cuenta cartas ni tiene en cuenta a su compañero: decide solo con la baza en curso.
+    /// IA de dificultad Normal: el jugador de domingo. Juega con sentido comun pero sin
+    /// memoria ni planes:
+    ///   - Abre con cartas baratas (no malgasta triunfos ni ases).
+    ///   - Gana las bazas que valen la pena con la carta mas floja que baste.
+    ///   - Mira a su compañero: si ya gana, no le quita la baza.
+    ///   - Solo carga puntos sobre la baza de su compañero cuando es el ultimo en jugar
+    ///     (unico caso en el que sabe que nadie puede responder).
+    ///   - Canta siempre que puede y siempre cambia el siete.
+    /// No cuenta cartas ni mira el marcador.
     /// </summary>
     public class IANormal : IEstrategiaIA
     {
+        /// <summary>En Fase Robo solo gasta una carta para ganar si la baza lleva al menos esto.</summary>
+        private const int PuntosMinimosParaGanarEnRobo = 4;
+
+        /// <summary>En Fase Robo solo gasta un triunfo para ganar si la baza lleva al menos esto.</summary>
+        private const int PuntosMinimosParaTriunfarEnRobo = 10;
+
         private readonly Random rng;
 
         public IANormal(Random random = null)
@@ -23,133 +29,55 @@ namespace GuinoteApp.Core
             rng = random ?? new Random();
         }
 
-        public Carta ElegirCarta(
-            int jugadorIdx,
-            List<Carta> mano,
-            EstadoBaza estadoBaza,
-            GamePhase fase,
-            Palo triunfo,
-            IReadOnlyList<Carta> cartasJugadasEnLaMano)
+        public Carta ElegirCarta(ContextoIA ctx)
         {
-            if (mano == null || mano.Count == 0)
+            if (ctx?.Mano == null || ctx.Mano.Count == 0)
                 return null;
 
-            // ─────────────────────────────────────────────────────────────────
-            // FASE ROBO: cualquier carta es valida → aleatoria
-            // ─────────────────────────────────────────────────────────────────
-            if (fase == GamePhase.FaseRobo)
-                return mano[rng.Next(mano.Count)];
+            List<Carta> validas = HeuristicasIA.JugadasValidas(ctx);
+            Palo triunfo = ctx.Triunfo;
 
-            // ─────────────────────────────────────────────────────────────────
-            // FASE ARRASTRE: aplicar estrategia greedy con reglas
-            // ─────────────────────────────────────────────────────────────────
+            // Abrir: sale con lo mas barato
+            if (ctx.EsApertura)
+                return HeuristicasIA.MenorCoste(validas, triunfo);
 
-            // Si somos el primero en salir (baza vacia), salimos con la carta de mayor valor
-            if (estadoBaza.CartaSalida == null)
-                return ElegirMayorValor(mano);
-
-            // Filtrar jugadas validas
-            List<Carta> jugadasValidas = FiltrarJugadasValidas(
-                mano, estadoBaza.CartaSalida, triunfo, estadoBaza.MejorCartaActual);
-
-            if (jugadasValidas.Count == 0)
-                jugadasValidas = mano; // fallback de seguridad
-
-            // De las validas, ver si alguna puede ganar la baza
-            List<Carta> puedenGanar = new List<Carta>();
-            foreach (Carta c in jugadasValidas)
+            // El compañero va ganando: solo suma puntos si nadie puede responder ya
+            if (ctx.CompaneroGanando)
             {
-                if (ValidadorReglas.GanaA(c, estadoBaza.MejorCartaActual,
-                    estadoBaza.CartaSalida.Palo, triunfo))
-                {
-                    puedenGanar.Add(c);
-                }
+                return ctx.EsUltimoEnJugar
+                    ? HeuristicasIA.MayorValor(validas, triunfo)
+                    : HeuristicasIA.MenorCoste(validas, triunfo);
             }
 
-            if (puedenGanar.Count > 0)
-            {
-                // Puede ganar → jugar la carta valida ganadora de mayor rango
-                return ElegirMayorRango(puedenGanar, estadoBaza.CartaSalida.Palo, triunfo);
-            }
-            else
-            {
-                // No puede ganar → descartar la de menor valor
-                return ElegirMenorValor(jugadasValidas);
-            }
+            // Va ganando un rival: intentar ganar si compensa
+            List<Carta> ganadoras = HeuristicasIA.QuePuedenGanar(ctx, validas);
+            if (ganadoras.Count > 0 && CompensaGanar(ctx, ganadoras))
+                return HeuristicasIA.GanadoraMasDebil(ganadoras, triunfo);
+
+            return HeuristicasIA.MenorCoste(validas, triunfo);
         }
+
+        public Palo? DecidirCante(ContextoIA ctx, IReadOnlyList<Palo> palosDisponibles)
+        {
+            return HeuristicasIA.MejorCante(palosDisponibles, ctx.Triunfo);
+        }
+
+        public bool DecidirCambio(ContextoIA ctx, Carta cartaPropia) => true;
 
         // =====================================================================
-        // Utilidades privadas
-        // =====================================================================
 
-        /// <summary>
-        /// Filtra la mano devolviendo solo las cartas jugables segun las reglas de arrastre.
-        /// </summary>
-        private static List<Carta> FiltrarJugadasValidas(
-            List<Carta> mano,
-            Carta cartaSalida,
-            Palo triunfo,
-            Carta mejorCartaEnMesa)
+        private static bool CompensaGanar(ContextoIA ctx, List<Carta> ganadoras)
         {
-            List<Carta> validas = new List<Carta>();
-            foreach (Carta c in mano)
-            {
-                if (ValidadorReglas.EsJugadaValidaArrastre(
-                        c, cartaSalida, triunfo, mano, mejorCartaEnMesa))
-                {
-                    validas.Add(c);
-                }
-            }
-            return validas;
-        }
+            // En Arrastre las cartas jugadas ya estan condenadas a salir: siempre gana
+            if (ctx.Fase == GamePhase.FaseArrastre) return true;
 
-        /// <summary>Devuelve la carta de mayor rango priorizando triunfos y palo de salida.</summary>
-        private static Carta ElegirMayorRango(List<Carta> cartas, Palo paloSalida, Palo triunfo)
-        {
-            Carta mejor = null;
-            foreach (Carta c in cartas)
-            {
-                if (mejor == null)
-                {
-                    mejor = c;
-                    continue;
-                }
-                if (ValidadorReglas.GanaA(c, mejor, paloSalida, triunfo))
-                    mejor = c;
-            }
-            return mejor;
-        }
+            int puntos = ctx.Baza.PuntosEnMesa;
+            bool soloConTriunfo = true;
+            foreach (Carta c in ganadoras)
+                if (c.Palo != ctx.Triunfo) { soloConTriunfo = false; break; }
 
-        /// <summary>Devuelve la carta con mas puntos de la mano (para salir primero).</summary>
-        private static Carta ElegirMayorValor(List<Carta> cartas)
-        {
-            Carta mejor = cartas[0];
-            for (int i = 1; i < cartas.Count; i++)
-            {
-                if (cartas[i].ObtenerPuntos() > mejor.ObtenerPuntos() ||
-                   (cartas[i].ObtenerPuntos() == mejor.ObtenerPuntos() &&
-                    cartas[i].Rango > mejor.Rango))
-                {
-                    mejor = cartas[i];
-                }
-            }
-            return mejor;
-        }
-
-        /// <summary>Devuelve la carta de menor valor (para descartar).</summary>
-        private static Carta ElegirMenorValor(List<Carta> cartas)
-        {
-            Carta peor = cartas[0];
-            for (int i = 1; i < cartas.Count; i++)
-            {
-                if (cartas[i].ObtenerPuntos() < peor.ObtenerPuntos() ||
-                   (cartas[i].ObtenerPuntos() == peor.ObtenerPuntos() &&
-                    cartas[i].Rango < peor.Rango))
-                {
-                    peor = cartas[i];
-                }
-            }
-            return peor;
+            int umbral = soloConTriunfo ? PuntosMinimosParaTriunfarEnRobo : PuntosMinimosParaGanarEnRobo;
+            return puntos >= umbral;
         }
     }
 }

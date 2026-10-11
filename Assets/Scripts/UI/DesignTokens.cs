@@ -65,17 +65,22 @@ namespace GuinoteApp.UI
         public static readonly Color TextoTapete   = HexColor("#e9f2ea");
 
         // =================================================================
-        // Tamaños de cartas (en unidades Unity, escalables)
+        // Tamaños de cartas (unidades de mundo)
+        // El mockup usa un tapete de 600 px de alto; la camara ortografica (size 5) muestra
+        // 10 unidades, asi que 1 px de diseño = 1/60 de unidad.
+        // Mantener sincronizados con los valores por defecto de CartaVisualManager.
         // =================================================================
 
+        private const float UnidadesPorPixelDiseno = 1f / 60f;
+
         /// <summary>Tamaño de carta en mano del jugador local (62×88 px ref).</summary>
-        public static readonly Vector2 CartaManoLocal = new Vector2(0.62f, 0.88f);
+        public static readonly Vector2 CartaManoLocal = new Vector2(62f, 88f) * UnidadesPorPixelDiseno;
         /// <summary>Tamaño de carta en mano de rivales/compañero (48×68 px ref).</summary>
-        public static readonly Vector2 CartaRival     = new Vector2(0.48f, 0.68f);
+        public static readonly Vector2 CartaRival     = new Vector2(48f, 68f) * UnidadesPorPixelDiseno;
         /// <summary>Tamaño de carta jugada en la baza (54×76 px ref).</summary>
-        public static readonly Vector2 CartaJugada    = new Vector2(0.54f, 0.76f);
+        public static readonly Vector2 CartaJugada    = new Vector2(54f, 76f) * UnidadesPorPixelDiseno;
         /// <summary>Tamaño de la carta de triunfo en mesa (44×62 px ref).</summary>
-        public static readonly Vector2 CartaTriunfo   = new Vector2(0.44f, 0.62f);
+        public static readonly Vector2 CartaTriunfo   = new Vector2(44f, 62f) * UnidadesPorPixelDiseno;
 
         // =================================================================
         // Utilidades
